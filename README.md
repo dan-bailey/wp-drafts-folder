@@ -1,2 +1,2 @@
 # wp-drafts-folder
-Adds "drafts" as an option under the Wordpress Posts menu. (Code snippet.)  You can include this as part of a Wordpress plugin.  This has been floating in my "Tweaks" plugin for years now.
+Adds "drafts" as an option under the Wordpress Posts menu. This was originally just stored here as a code snippet, but it's been moved into a boilerplate (wppb) plugin framework.
