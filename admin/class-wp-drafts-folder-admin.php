@@ -105,6 +105,6 @@ class Wp_Drafts_Folder_Admin {
 		add_posts_page(__('Drafts'), __('Drafts'), 'read', 'edit.php?post_status=draft&post_type=post');
 	}
 
-	add_action('admin_menu', 'add_drafts_admin_menu_item');
-
 }
+
+add_action('admin_menu', 'add_drafts_admin_menu_item');
