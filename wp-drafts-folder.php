@@ -15,7 +15,7 @@
  * @wordpress-plugin
  * Plugin Name:       WP Drafts Folder
  * Plugin URI:        https://github.com/dan-bailey/wp-drafts-folder/blob/master/index.php
- * Description:       Adds a "Drafts" link to the Posts folder in the admin section.
+ * Description:       Improves accessibuility to posts that are in draft mode.
  * Version:           1.0.0
  * Author:            Dan Bailey
  * Author URI:        https://www.danbailey.net
@@ -77,6 +77,12 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-wp-drafts-folder.php';
 
 
 /* here's the actual stuff that happens */
+function wp_drafts_folder_enqueue_admin_assets() {
+	wp_enqueue_style( 'wp-drafts-folder', plugin_dir_url( __FILE__ ) . 'admin/css/wp-drafts-folder-admin.css', [], WP_DRAFTS_FOLDER_VERSION );
+	wp_enqueue_script( 'wp-drafts-folder', plugin_dir_url( __FILE__ ) . 'admin/js/wp-drafts-folder-admin.js', [ 'jquery' ], WP_DRAFTS_FOLDER_VERSION, true );
+}
+add_action( 'admin_enqueue_scripts', 'wp_drafts_folder_enqueue_admin_assets' );
+
 function add_drafts_admin_menu_item() {
 	// adds "Drafts" to the Posts menu in the Admin view
 	add_posts_page(__('Drafts'), __('Drafts'), 'read', 'edit.php?post_status=draft&post_type=post');
@@ -118,7 +124,7 @@ function wp_drafts_folder_dashboard_widget_content() {
 	}
 
 	echo '<div class="wpdf-filter">';
-	echo '<label for="wpdf-type-filter">' . esc_html__( 'Filter by type:', 'wp-drafts-folder' ) . '</label>';
+	echo '<label for="wpdf-type-filter">' . esc_html__( 'Filter by type: ', 'wp-drafts-folder' ) . '</label>';
 	echo '<select id="wpdf-type-filter">';
 	echo '<option value="all">' . esc_html__( 'All Types', 'wp-drafts-folder' ) . '</option>';
 	foreach ( $types_in_results as $type => $label ) {
@@ -134,10 +140,9 @@ function wp_drafts_folder_dashboard_widget_content() {
 		$modified   = get_the_modified_date( 'M j, Y', $draft );
 		$title      = $draft->post_title ?: __( '(no title)', 'wp-drafts-folder' );
 		echo '<li class="wpdf-draft-item" data-post-type="' . esc_attr( $draft->post_type ) . '">';
-		echo '<div class="wpdf-draft-title"><a href="' . esc_url( $edit_link ) . '">' . esc_html( $title ) . '</a></div>';
+		echo '<div class="wpdf-draft-title"><a href="' . esc_url( $edit_link ) . '">' . esc_html( $title ) . '</a> (' . esc_html( $type_label ) . ')</div>';
 		echo '<div class="wpdf-draft-meta">';
-		echo '<span class="wpdf-type-badge">' . esc_html( $type_label ) . '</span>';
-		echo '<span class="wpdf-date">' . esc_html__( 'Last edited', 'wp-drafts-folder' ) . ' ' . esc_html( $modified ) . '</span>';
+		echo '<span class="wpdf-date">Last edited: ' . esc_html( $modified ) . '</span>';
 		echo '</div>';
 		echo '</li>';
 	}
