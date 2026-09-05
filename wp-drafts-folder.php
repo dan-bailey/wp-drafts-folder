@@ -15,8 +15,8 @@
  * @wordpress-plugin
  * Plugin Name:       WP Drafts Folder
  * Plugin URI:        https://github.com/dan-bailey/wp-drafts-folder/blob/master/index.php
- * Description:       Adds a "Drafts" link to the Posts folder in the admin section.
- * Version:           1.0.0
+ * Description:       Improves accessibuility to posts that are in draft mode.
+ * Version:           1.1.0
  * Author:            Dan Bailey
  * Author URI:        https://www.danbailey.net
  * License:           GPL-2.0+
@@ -35,7 +35,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'WP_DRAFTS_FOLDER_VERSION', '1.0.0' );
+define( 'WP_DRAFTS_FOLDER_VERSION', '1.1.0' );
 
 /**
  * The code that runs during plugin activation.
@@ -77,11 +77,77 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-wp-drafts-folder.php';
 
 
 /* here's the actual stuff that happens */
+function wp_drafts_folder_enqueue_admin_assets() {
+	wp_enqueue_style( 'wp-drafts-folder', plugin_dir_url( __FILE__ ) . 'admin/css/wp-drafts-folder-admin.css', [], WP_DRAFTS_FOLDER_VERSION );
+	wp_enqueue_script( 'wp-drafts-folder', plugin_dir_url( __FILE__ ) . 'admin/js/wp-drafts-folder-admin.js', [ 'jquery' ], WP_DRAFTS_FOLDER_VERSION, true );
+}
+add_action( 'admin_enqueue_scripts', 'wp_drafts_folder_enqueue_admin_assets' );
+
 function add_drafts_admin_menu_item() {
 	// adds "Drafts" to the Posts menu in the Admin view
-	add_posts_page(__('Drafts'), __('Drafts'), 'read', 'edit.php?post_status=draft&post_type=post');	
+	add_posts_page(__('Drafts'), __('Drafts'), 'read', 'edit.php?post_status=draft&post_type=post');
 }
 add_action('admin_menu', 'add_drafts_admin_menu_item');
+
+
+function wp_drafts_folder_register_dashboard_widget() {
+	wp_add_dashboard_widget(
+		'wp_drafts_folder_dashboard_widget',
+		__( 'Draft Content', 'wp-drafts-folder' ),
+		'wp_drafts_folder_dashboard_widget_content'
+	);
+}
+add_action( 'wp_dashboard_setup', 'wp_drafts_folder_register_dashboard_widget' );
+
+function wp_drafts_folder_dashboard_widget_content() {
+	$post_types       = get_post_types( [ 'public' => true ], 'objects' );
+	$post_type_names  = array_keys( $post_types );
+
+	$drafts = get_posts( [
+		'post_status'    => 'draft',
+		'post_type'      => $post_type_names,
+		'posts_per_page' => 50,
+		'orderby'        => 'modified',
+		'order'          => 'DESC',
+	] );
+
+	if ( empty( $drafts ) ) {
+		echo '<p>' . esc_html__( 'No drafts found.', 'wp-drafts-folder' ) . '</p>';
+		return;
+	}
+
+	$types_in_results = [];
+	foreach ( $drafts as $draft ) {
+		if ( ! isset( $types_in_results[ $draft->post_type ] ) ) {
+			$types_in_results[ $draft->post_type ] = $post_types[ $draft->post_type ]->labels->singular_name;
+		}
+	}
+
+	echo '<div class="wpdf-filter">';
+	echo '<label for="wpdf-type-filter">' . esc_html__( 'Filter by type: ', 'wp-drafts-folder' ) . '</label>';
+	echo '<select id="wpdf-type-filter">';
+	echo '<option value="all">' . esc_html__( 'All Types', 'wp-drafts-folder' ) . '</option>';
+	foreach ( $types_in_results as $type => $label ) {
+		echo '<option value="' . esc_attr( $type ) . '">' . esc_html( $label ) . '</option>';
+	}
+	echo '</select>';
+	echo '</div>';
+
+	echo '<ul class="wpdf-draft-list">';
+	foreach ( $drafts as $draft ) {
+		$edit_link  = get_edit_post_link( $draft->ID );
+		$type_label = $post_types[ $draft->post_type ]->labels->singular_name;
+		$modified   = get_the_modified_date( 'M j, Y', $draft );
+		$title      = $draft->post_title ?: __( '(no title)', 'wp-drafts-folder' );
+		echo '<li class="wpdf-draft-item" data-post-type="' . esc_attr( $draft->post_type ) . '">';
+		echo '<div class="wpdf-draft-title"><a href="' . esc_url( $edit_link ) . '">' . esc_html( $title ) . '</a> (' . esc_html( $type_label ) . ')</div>';
+		echo '<div class="wpdf-draft-meta">';
+		echo '<span class="wpdf-date">Last edited: ' . esc_html( $modified ) . '</span>';
+		echo '</div>';
+		echo '</li>';
+	}
+	echo '</ul>';
+}
 
 
 function run_wp_drafts_folder() {
