@@ -16,7 +16,7 @@
  * Plugin Name:       WP Drafts Folder
  * Plugin URI:        https://github.com/dan-bailey/wp-drafts-folder/blob/master/index.php
  * Description:       Improves accessibuility to posts that are in draft mode.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Author:            Dan Bailey
  * Author URI:        https://www.danbailey.net
  * License:           GPL-2.0+
@@ -35,7 +35,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'WP_DRAFTS_FOLDER_VERSION', '1.0.0' );
+define( 'WP_DRAFTS_FOLDER_VERSION', '1.1.0' );
 
 /**
  * The code that runs during plugin activation.
